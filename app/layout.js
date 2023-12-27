@@ -1,7 +1,21 @@
-import { Inter } from 'next/font/google'
+import { Bebas_Neue, Bricolage_Grotesque } from 'next/font/google'
 import './globals.css'
 
-const inter = Inter({ subsets: ['latin'] })
+const bebasNeue = Bebas_Neue({
+  weight: ['400'],
+  style: ['normal'],
+  display: 'swap',
+  subsets: ['latin'],
+  variable: '--font-bebas',
+});
+
+const bricolage = Bricolage_Grotesque({
+  weight: ['300','400', '700'],
+  style: ['normal'],
+  display: 'swap',
+  subsets: ['latin'],
+  variable: '--font-bricolage',
+});
 
 export const metadata = {
   title: 'Create Next App',
@@ -11,7 +25,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={`${bebasNeue.className} ${bricolage.className}`}>{children}</body>
     </html>
   )
 }
