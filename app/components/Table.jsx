@@ -10,8 +10,22 @@ const Table = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('/api/airtable');
-        setRecords(response.data.records);
+        // const response = await axios.get('/api/airtable');
+
+        const response = await fetch('/dummy.csv');
+        const text = await response.text();
+        const rows = text.split('\n');
+        const header = rows[0].split(',');
+
+        const parsedData = rows.slice(1).map(row => {
+          const values = row.split(',');
+          return header.reduce((acc, header, index) => {
+            acc[header] = values[index];
+            return acc;
+          }, {});
+        });
+
+        setRecords(parsedData);
       } catch (error) {
         console.error('Error fetching data from Airtable:', error);
       }
@@ -19,6 +33,8 @@ const Table = () => {
 
     fetchData();
   }, []);
+
+  console.log(records);
   return (
     <div className="table">
       <table>
