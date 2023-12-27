@@ -477,6 +477,7 @@ body {
   font-style: normal;
   font-weight: 700;
   margin-bottom: 40px;
+  text-transform: uppercase;
 }
 
 .header-text p {

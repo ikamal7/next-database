@@ -59,14 +59,14 @@ const Table = () => {
                 </svg>
               </td>
               <td>
-                <a href="/profile/kamal">{record.name}<span>Designer</span></a>
+                <a href="/profile/kamal">{record.name}<span>{record.position}</span></a>
               </td>
-              <td>ABC Studio</td>
-              <td>RGB 12, RGB 23</td>
-              <td>123</td>
-              <td>CaRD, WEBSITE</td>
-              <td>2020, 2021</td>
-              <td>DHAKA, COXS BAZAR, BANDARBAN</td>
+              <td>{record.main_agency}</td>
+              <td>{record.executing_unit}</td>
+              <td>{record.cases}</td>
+              <td>{record.execution_type}</td>
+              <td>{record.active_year}</td>
+              <td>{record.location}</td>
             </tr>
           ))}
         </tbody>
