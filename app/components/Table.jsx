@@ -12,7 +12,7 @@ const Table = () => {
 
   const apiKey = process.env.NEXT_PUBLIC_AIRTABLE_API_KEY;
   const baseId = process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID;
-  const pageSize = 4;
+  const pageSize = 50;
   const tableName = 'Imported table';
 
   Airtable.configure({
