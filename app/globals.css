@@ -822,6 +822,12 @@ tbody td a span {
   .container {
     width: 90%;
   }
+  .header{
+    flex-direction: column-reverse;
+  }
+  .header-text{
+    max-width: 100%;
+  }
   .single-profile{
     padding: 50px 0;
   }
@@ -844,7 +850,7 @@ tbody td a span {
   }
 
   .search form {
-    flex-direction: column;
+    flex-direction: row;
     padding-bottom: 20px;
   }
 
