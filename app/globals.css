@@ -454,7 +454,7 @@ body {
 }
 
 .hero {
-  padding: 150px 0 130px 0;
+  padding: 150px 0 0 0;
 }
 
 .header {
@@ -494,6 +494,10 @@ select {
   border: none;
   background: transparent;
   color: #fff;
+}
+
+.search{
+  padding-bottom: 130px;
 }
 
 .search form {
@@ -790,4 +794,12 @@ tbody td a span {
 
 .toggle-arrow {
   cursor: pointer;
+}
+.pd-container{
+  padding: 150px 0;
+}
+.flex{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
