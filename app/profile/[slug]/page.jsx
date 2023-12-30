@@ -47,7 +47,7 @@ export default function Page({ params }) {
             {profile && (
             <div className="single-profile">
                 <div className="container">
-                        <Link href={'/'}>Back to Home</Link>
+                        <Link className="backTo" href={'/'}>Back to Home</Link>
                     <div className="profile">
                         <div className="left-info">
                             <h5>STUFF PROFILE</h5>
