@@ -9,11 +9,14 @@ const Table = () => {
   const [profiles, setProfiles] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [searchText, setSearchText] = useState('');
+  const [searchCategory, setSearchCategory] = useState('Any');
+
 
   const apiKey = process.env.NEXT_PUBLIC_AIRTABLE_API_KEY;
   const baseId = process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID;
   const pageSize = 50;
-  const tableName = 'Imported table';
+  const tableName = process.env.NEXT_PUBLIC_AIRTABLE_TABLE_NAME;
 
   Airtable.configure({
     apiKey: apiKey
@@ -21,56 +24,57 @@ const Table = () => {
 
   const base = Airtable.base(baseId);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
+  const fetchData = async () => {
+    try {
 
-        // Fetch the first page of records
-        // const records = await base(tableName)
-        //   .select({
-        //     pageSize: pageSize,
-        //     view: 'Grid view'
-        //   })
-        //   .all();
+      // Fetch the first page of records
+      // const records = await base(tableName)
+      //   .select({
+      //     pageSize: pageSize,
+      //     view: 'Grid view'
+      //   })
+      //   .all();
 
-        // const fieldsArray = records.map(record => ({
-        //   id: record.id,
-        //   fields: record.fields
-        // }));
+      // const fieldsArray = records.map(record => ({
+      //   id: record.id,
+      //   fields: record.fields
+      // }));
 
-        // setProfiles(fieldsArray);
-        // setTotalPages(Math.ceil(records / pageSize) + 1);
+      // setProfiles(fieldsArray);
+      // setTotalPages(Math.ceil(records / pageSize) + 1);
 
 
-        base(tableName)
-          .select({
-            pageSize: pageSize,
-            view: "Grid view"
-          })
-          .eachPage(
-            (records, fetchNextPage) => {
-              const fieldsArray = records.map(record => ({
-                id: record.id,
-                fields: record.fields
-              }));
-              setProfiles(fieldsArray);
-              console.log(profiles);
-              // Use the offset from the last page to calculate total pages
-              // setTotalPages(Math.ceil(records.length / pageSize) + 1);
+      base(tableName)
+        .select({
+          pageSize: pageSize,
+          view: "Grid view"
+        })
+        .eachPage(
+          (records, fetchNextPage) => {
+            const fieldsArray = records.map(record => ({
+              id: record.id,
+              fields: record.fields
+            }));
+            setProfiles(fieldsArray);
+            // Use the offset from the last page to calculate total pages
+            // setTotalPages(Math.ceil(records.length / pageSize) + 1);
 
-              fetchNextPage();
-            },
-            (error) => {
-              if (error) {
-                console.error('Error fetching data from Airtable:', error);
-              }
+            fetchNextPage();
+          },
+          (error) => {
+            if (error) {
+              console.error('Error fetching data from Airtable:', error);
             }
-          );
+          }
+        );
 
-      } catch (error) {
-        console.error('Error fetching data from Airtable:', error);
-      }
-    };
+    } catch (error) {
+      console.error('Error fetching data from Airtable:', error);
+    }
+  };
+
+  useEffect(() => {
+    
 
     fetchData();
   }, []);
@@ -79,13 +83,13 @@ const Table = () => {
     setCurrentPage(newPage);
 
     try {
-      const offset = (newPage - 1) * pageSize;
+      // const offset = (newPage - 1) * pageSize;
 
       const { records, offset: newOffset } = await base(tableName)
         .select({
 
           view: 'Grid view',
-          offset
+          // offset
         })
         .all();
 
@@ -101,22 +105,59 @@ const Table = () => {
     }
   };
 
+  const handleSearchTextChange = (e) => {
+    const newText = e.target.value.trim();  // Trim whitespace from the input
+
+    setSearchText(newText);
+
+    // Trigger search if the input is not empty; otherwise, fetch all data
+    if (typeof onSearch === 'function' && newText !== '') {
+      onSearch({ searchText: newText, searchCategory });
+    } else {
+      // If the input is empty, fetch all data
+      fetchData();
+      return;
+    }
+  };
+
+  const handleSearchCategoryChange = (e) => {
+    setSearchCategory(e.target.value);
+  };
+
   const handleSearch = ({ searchText, searchCategory }) => {
-    // Filter the profiles based on the search criteria
-    const filteredProfiles = initialProfiles.filter((profile) => {
-      const fieldValue = profile.fields[searchCategory.toLowerCase()];
 
-      // Case-insensitive search
-      return fieldValue.toLowerCase().includes(searchText.toLowerCase());
+    const filteredProfiles = profiles.filter((profile) => {
+
+      const fieldValue = profile.fields[searchCategory]?.toString().toLowerCase();
+      const lowercaseSearchText = searchText.toLowerCase();
+  
+
+      if (searchCategory === 'Any') {
+        return Object.values(profile.fields).some((field) =>
+          field?.toString().toLowerCase().includes(lowercaseSearchText)
+        );
+      }
+  
+
+      return fieldValue && fieldValue.includes(lowercaseSearchText);
     });
-
+  
     setProfiles(filteredProfiles);
   };
+    
+  
+  
 
 
   return (
     <>
-      <SearchForm onSearch={handleSearch} />
+      <SearchForm
+        onSearch={handleSearch}
+        searchText={searchText}
+        searchCategory={searchCategory}
+        onSearchTextChange={handleSearchTextChange}
+        onSearchCategoryChange={handleSearchCategoryChange}
+      />
 
       <div className="table">
         <table>
@@ -171,8 +212,7 @@ const Table = () => {
             </button>
             <span>{`Page ${currentPage} of ${totalPages}`}</span>
             <button
-              disabled={currentPage === totalPages}
-              onClick={() => handlePageChange(currentPage + 1)}
+              onClick={handlePageChange}
             >
               <svg width="24" height="8" viewBox="0 0 24 8" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M23.3536 4.35355C23.5488 4.15829 23.5488 3.84171 23.3536 3.64645L20.1716 0.464466C19.9763 0.269204 19.6597 0.269204 19.4645 0.464466C19.2692 0.659728 19.2692 0.976311 19.4645 1.17157L22.2929 4L19.4645 6.82843C19.2692 7.02369 19.2692 7.34027 19.4645 7.53553C19.6597 7.7308 19.9763 7.7308 20.1716 7.53553L23.3536 4.35355ZM0 4.5L23 4.5V3.5L0 3.5L0 4.5Z" fill="#DCB322" />
@@ -181,7 +221,7 @@ const Table = () => {
             </button>
           </div>
           <div>
-            <a href="#">Download</a>
+            {/* <a href="#">Download</a> */}
           </div>
         </div>
       </div>

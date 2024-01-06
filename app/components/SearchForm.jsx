@@ -1,26 +1,23 @@
-import React, { useState } from 'react';
+import React from 'react';
 
-const SearchForm = ({ onSearch }) => {
-  const [searchText, setSearchText] = useState('');
-  const [searchCategory, setSearchCategory] = useState('Any');
-
-  const handleSearchTextChange = (e) => {
-    setSearchText(e.target.value);
-  };
-
-  const handleSearchCategoryChange = (e) => {
-    setSearchCategory(e.target.value);
-  };
-
+const SearchForm = ({
+  onSearch,
+  searchText,
+  searchCategory,
+  onSearchTextChange,
+  onSearchCategoryChange,
+}) => {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    // Pass the search criteria to the parent component
-    onSearch({ searchText, searchCategory });
+    // Ensure that onSearch is a function before calling it
+    if (typeof onSearch === 'function') {
+      onSearch({ searchText, searchCategory });
+    }
   };
 
   return (
     <div className="search">
-      <form onSubmit={handleSearchSubmit}>
+      <form onChange={handleSearchSubmit}>
         <div className="input-group" style={{ width: '80%' }}>
           <input
             type="text"
@@ -28,7 +25,7 @@ const SearchForm = ({ onSearch }) => {
             id="search"
             placeholder="Search"
             value={searchText}
-            onChange={handleSearchTextChange}
+            onChange={onSearchTextChange}
           />
         </div>
         <span>in</span>
@@ -37,7 +34,7 @@ const SearchForm = ({ onSearch }) => {
             name="category"
             id="category"
             value={searchCategory}
-            onChange={handleSearchCategoryChange}
+            onChange={onSearchCategoryChange}
           >
             <option value="Any">Any</option>
             <option value="Name">Name</option>
@@ -47,6 +44,7 @@ const SearchForm = ({ onSearch }) => {
             <option value="Locations">Locations</option>
           </select>
         </div>
+        {/* <button type="submit">Search</button> */}
       </form>
     </div>
   );
