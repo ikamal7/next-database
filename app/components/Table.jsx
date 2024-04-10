@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Airtable from "airtable";
 import SearchForm from "./SearchForm";
+import csvDownload from "json-to-csv-export";
 
 const Table = () => {
   const [profiles, setProfiles] = useState([]);
@@ -136,7 +137,51 @@ const Table = () => {
   };
 
   const downloadAsCSV = () => {
-    alert("ok");
+    const ipAddressesData = profiles?.map((el) => ({
+      date: el.fields.date ?? "",
+      active_year: el.fields.active_year ?? "",
+      cases: el.fields.cases ?? "",
+      client: el.fields.client ?? "",
+      client_id: el.fields.client_id ?? "",
+      executing_agency: el.fields.executing_agency ?? "",
+      executing_unit: el.fields.executing_unit ?? "",
+      execution_type: el.fields.execution_type ?? "",
+      identity: el.fields.identity ?? "",
+      location: el.fields.location ?? "",
+      main_agency: el.fields.main_agency ?? "",
+      name: el.fields.name ?? "",
+      official_id: el.fields.official_id ?? "",
+      position: el.fields.position ?? "",
+      role: el.fields.role ?? "",
+      source: el.fields.source ?? "",
+      description: el.fields.description ?? "",
+    }));
+    const dataToConvert = {
+      data: ipAddressesData,
+      filename: "profiles",
+      delimiter: ",",
+      headers: [
+        "date",
+        "active_year",
+        "cases",
+        "client",
+        "client_id",
+        "executing_agency",
+        "executing_unit",
+        "execution_type",
+        "identity",
+        "location",
+        "main_agency",
+        "name",
+        "official_id",
+        "position",
+        "role",
+        "source",
+        "description",
+      ],
+    };
+
+    csvDownload(dataToConvert);
   };
 
   return (

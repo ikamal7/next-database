@@ -11,6 +11,7 @@
   "dependencies": {
     "airtable": "^0.12.2",
     "axios": "^1.6.3",
+    "json-to-csv-export": "^2.1.1",
     "next": "14.0.4",
     "papaparse": "^5.4.1",
     "react": "^18",
