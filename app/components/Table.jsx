@@ -195,55 +195,57 @@ const Table = () => {
       />
 
       <div className="table">
-        <table>
-          <thead>
-            <tr>
-              <th></th>
-              <th>Name</th>
-              <th>Main Agency</th>
-              <th>Executing Agency</th>
-              <th>Number of Cases</th>
-              <th>Execution Type</th>
-              <th>Years</th>
-              <th>Locations</th>
-            </tr>
-          </thead>
-          <tbody>
-            {profiles?.map((profile, index) => (
-              <tr key={index}>
-                <td>
-                  <svg
-                    width="64"
-                    height="67"
-                    viewBox="0 0 64 67"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <rect
-                      x="0.261963"
-                      y="0.391357"
-                      width="62.8132"
-                      height="66.007"
-                      fill="#D9D9D9"
-                    />
-                  </svg>
-                </td>
-                <td>
-                  <a href={`/profile/${profile.id}`}>
-                    {profile.fields.name}
-                    <span>{profile.fields.position}</span>
-                  </a>
-                </td>
-                <td>{profile.fields.main_agency}</td>
-                <td>{profile.fields.executing_unit}</td>
-                <td>{profile.fields.cases}</td>
-                <td>{profile.fields.execution_type}</td>
-                <td>{profile.fields.active_year}</td>
-                <td>{profile.fields.location}</td>
+        <div className="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th></th>
+                <th>Name</th>
+                <th>Main Agency</th>
+                <th>Executing Agency</th>
+                <th>Number of Cases</th>
+                <th>Execution Type</th>
+                <th>Years</th>
+                <th>Locations</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {profiles?.map((profile, index) => (
+                <tr key={index}>
+                  <td>
+                    <svg
+                      width="64"
+                      height="67"
+                      viewBox="0 0 64 67"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <rect
+                        x="0.261963"
+                        y="0.391357"
+                        width="62.8132"
+                        height="66.007"
+                        fill="#D9D9D9"
+                      />
+                    </svg>
+                  </td>
+                  <td>
+                    <a href={`/profile/${profile.id}`}>
+                      {profile.fields.name}
+                      <span>{profile.fields.position}</span>
+                    </a>
+                  </td>
+                  <td>{profile.fields.main_agency}</td>
+                  <td>{profile.fields.executing_unit}</td>
+                  <td>{profile.fields.cases}</td>
+                  <td>{profile.fields.execution_type}</td>
+                  <td>{profile.fields.active_year}</td>
+                  <td>{profile.fields.location}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         <div className="flex pd-container">
           <div className="pagination">
             <button
