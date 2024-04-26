@@ -4,184 +4,177 @@ import React, { useState, useEffect } from "react";
 import Airtable from "airtable";
 import SearchForm from "./SearchForm";
 import csvDownload from "json-to-csv-export";
+import axios from "axios";
+import useDebounce from "@/hooks/useDebounce";
 
+let isLoaded = false;
 const Table = () => {
   const [profiles, setProfiles] = useState([]);
+  const [offestList, setOffsetList] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchText, setSearchText] = useState("");
-  const [searchCategory, setSearchCategory] = useState("Any");
+  const [searchCategory, setSearchCategory] = useState("Name");
 
   const apiKey = process.env.NEXT_PUBLIC_AIRTABLE_API_KEY;
   const baseId = process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID;
-  const pageSize = 50;
+  const pageSize = 2;
   const tableName = process.env.NEXT_PUBLIC_AIRTABLE_TABLE_NAME;
 
-  Airtable.configure({
-    apiKey: apiKey,
-  });
-
-  const base = Airtable.base(baseId);
-
-  const fetchData = async () => {
-    try {
-      // Fetch the first page of records
-      // const records = await base(tableName)
-      //   .select({
-      //     pageSize: pageSize,
-      //     view: 'Grid view'
-      //   })
-      //   .all();
-
-      // const fieldsArray = records.map(record => ({
-      //   id: record.id,
-      //   fields: record.fields
-      // }));
-
-      // setProfiles(fieldsArray);
-      // setTotalPages(Math.ceil(records / pageSize) + 1);
-
-      base(tableName)
-        .select({
-          pageSize: pageSize,
-          view: "Grid view",
-        })
-        .eachPage(
-          (records, fetchNextPage) => {
-            const fieldsArray = records.map((record) => ({
-              id: record.id,
-              fields: record.fields,
-            }));
-            setProfiles(fieldsArray);
-            // Use the offset from the last page to calculate total pages
-            // setTotalPages(Math.ceil(records.length / pageSize) + 1);
-
-            fetchNextPage();
-          },
-          (error) => {
-            if (error) {
-              console.error("Error fetching data from Airtable:", error);
-            }
-          }
-        );
-    } catch (error) {
-      console.error("Error fetching data from Airtable:", error);
-    }
-  };
-
   useEffect(() => {
+    if (isLoaded) return;
+    isLoaded = true
     fetchData();
-  }, []);
+  }, [])
 
-  const handlePageChange = async (newPage) => {
-    setCurrentPage(newPage);
+  function fetchData(offset, isNext = true, filterByFormula) {
+    const url = `https://api.airtable.com/v0/${baseId}/${tableName}`;
+    const offsetParam = offset ? `&offset=${offset}` : '';
+    const formula = filterByFormula ? `&filterByFormula=${filterByFormula}` : '';
+    axios.get(`${url}?pageSize=${pageSize}&view=Grid+view${offsetParam}${formula}`, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`
+      },
+    }).then(res => {
+      if (!res?.data?.records) return;
 
-    try {
-      // const offset = (newPage - 1) * pageSize;
-
-      const { records, offset: newOffset } = await base(tableName)
-        .select({
-          view: "Grid view",
-          // offset
-        })
-        .all();
-
-      const fieldsArray = records.map((record) => ({
+      const fieldsArray = res?.data?.records.map((record) => ({
         id: record.id,
         fields: record.fields,
       }));
 
+      if (isNext) {
+        setOffsetList(prev => ([res?.data?.offset, ...prev]))
+      }
       setProfiles(fieldsArray);
-      setTotalPages(Math.ceil(newOffset / pageSize) + 1);
-    } catch (error) {
-      console.error("Error fetching data from Airtable:", error);
-    }
+    })
+  }
+
+  const handlePrevPage = (newPage) => {
+    setCurrentPage(newPage);
+    fetchData(offestList?.[2], false);
+    setOffsetList(offestList.slice(1))
+  };
+  const handleNextPage = (newPage) => {
+    setCurrentPage(newPage);
+    fetchData(offestList?.[0], true);
   };
 
+
+
   const handleSearchTextChange = (e) => {
-    const newText = e.target.value.trim(); // Trim whitespace from the input
+    const newText = e.target.value; // Trim whitespace from the input
 
     setSearchText(newText);
 
-    // Trigger search if the input is not empty; otherwise, fetch all data
-    if (typeof onSearch === "function" && newText !== "") {
-      onSearch({ searchText: newText, searchCategory });
-    } else {
-      // If the input is empty, fetch all data
-      fetchData();
-      return;
-    }
+    // // Trigger search if the input is not empty; otherwise, fetch all data
+    // if (typeof onSearch === "function" && newText !== "") {
+    //   onSearch({ searchText: newText, searchCategory });
+    // } else {
+    //   // If the input is empty, fetch all data
+    //   fetchData(undefined, undefined, debouncedSearch);
+    //   return;
+    // }
   };
 
   const handleSearchCategoryChange = (e) => {
     setSearchCategory(e.target.value);
   };
 
+  const debounceSearch = useDebounce(searchText);
+
+  useEffect(() => {
+    let formula;
+
+    if (debounceSearch && searchCategory) {
+      formula = `SEARCH('${debounceSearch}', {${searchCategory}})`;
+    }
+
+    fetchData(undefined, undefined, formula)
+  }, [
+    debounceSearch, searchCategory
+  ])
+
   const handleSearch = ({ searchText, searchCategory }) => {
-    const filteredProfiles = profiles.filter((profile) => {
-      const fieldValue = profile.fields[searchCategory]
-        ?.toString()
-        .toLowerCase();
-      const lowercaseSearchText = searchText.toLowerCase();
+    // const filteredProfiles = profiles.filter((profile) => {
+    //   const fieldValue = profile.fields[searchCategory]
+    //     ?.toString()
+    //     .toLowerCase();
+    //   const lowercaseSearchText = searchText.toLowerCase();
 
-      if (searchCategory === "Any") {
-        return Object.values(profile.fields).some((field) =>
-          field?.toString().toLowerCase().includes(lowercaseSearchText)
-        );
-      }
+    //   if (searchCategory === "Any") {
+    //     return Object.values(profile.fields).some((field) =>
+    //       field?.toString().toLowerCase().includes(lowercaseSearchText)
+    //     );
+    //   }
 
-      return fieldValue && fieldValue.includes(lowercaseSearchText);
-    });
+    //   return fieldValue && fieldValue.includes(lowercaseSearchText);
+    // });
 
-    setProfiles(filteredProfiles);
+    // setProfiles(filteredProfiles);
   };
 
   const downloadAsCSV = () => {
-    const ipAddressesData = profiles?.map((el) => ({
-      date: el.fields.date ?? "",
-      active_year: el.fields.active_year ?? "",
-      cases: el.fields.cases ?? "",
-      client: el.fields.client ?? "",
-      client_id: el.fields.client_id ?? "",
-      executing_agency: el.fields.executing_agency ?? "",
-      executing_unit: el.fields.executing_unit ?? "",
-      execution_type: el.fields.execution_type ?? "",
-      identity: el.fields.identity ?? "",
-      location: el.fields.location ?? "",
-      main_agency: el.fields.main_agency ?? "",
-      name: el.fields.name ?? "",
-      official_id: el.fields.official_id ?? "",
-      position: el.fields.position ?? "",
-      role: el.fields.role ?? "",
-      source: el.fields.source ?? "",
-      description: el.fields.description ?? "",
-    }));
-    const dataToConvert = {
-      data: ipAddressesData,
-      filename: "profiles",
-      delimiter: ",",
-      headers: [
-        "date",
-        "active_year",
-        "cases",
-        "client",
-        "client_id",
-        "executing_agency",
-        "executing_unit",
-        "execution_type",
-        "identity",
-        "location",
-        "main_agency",
-        "name",
-        "official_id",
-        "position",
-        "role",
-        "source",
-        "description",
-      ],
-    };
+    const url = `https://api.airtable.com/v0/${baseId}/${tableName}`;
+    axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`
+      },
+    }).then(res => {
+      if (!res?.data?.records) return;
 
-    csvDownload(dataToConvert);
+      const fieldsArray = res?.data?.records.map((record) => ({
+        id: record.id,
+        fields: record.fields,
+      }));
+
+      const ipAddressesData = fieldsArray?.map((el) => ({
+        date: el.fields.date ?? "",
+        active_year: el.fields.active_year ?? "",
+        cases: el.fields.cases ?? "",
+        client: el.fields.client ?? "",
+        client_id: el.fields.client_id ?? "",
+        executing_agency: el.fields.executing_agency ?? "",
+        executing_unit: el.fields.executing_unit ?? "",
+        execution_type: el.fields.execution_type ?? "",
+        identity: el.fields.identity ?? "",
+        location: el.fields.location ?? "",
+        main_agency: el.fields.main_agency ?? "",
+        name: el.fields.name ?? "",
+        official_id: el.fields.official_id ?? "",
+        position: el.fields.position ?? "",
+        role: el.fields.role ?? "",
+        source: el.fields.source ?? "",
+        description: el.fields.description ?? "",
+      }));
+      const dataToConvert = {
+        data: ipAddressesData,
+        filename: "profiles",
+        delimiter: ",",
+        headers: [
+          "date",
+          "active_year",
+          "cases",
+          "client",
+          "client_id",
+          "executing_agency",
+          "executing_unit",
+          "execution_type",
+          "identity",
+          "location",
+          "main_agency",
+          "name",
+          "official_id",
+          "position",
+          "role",
+          "source",
+          "description",
+        ],
+      };
+
+      csvDownload(dataToConvert);
+
+    })
   };
 
   return (
@@ -250,7 +243,7 @@ const Table = () => {
           <div className="pagination">
             <button
               disabled={currentPage === 1}
-              onClick={() => handlePageChange(currentPage - 1)}
+              onClick={() => handlePrevPage(currentPage - 1)}
             >
               <svg
                 width="24"
@@ -266,7 +259,7 @@ const Table = () => {
               </svg>
             </button>
             <span>{`Page ${currentPage} of ${totalPages}`}</span>
-            <button onClick={handlePageChange}>
+            <button onClick={() => handleNextPage(currentPage + 1)}>
               <svg
                 width="24"
                 height="8"
