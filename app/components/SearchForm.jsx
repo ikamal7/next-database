@@ -17,7 +17,7 @@ const SearchForm = ({
 
   return (
     <div className="search">
-      <form onChange={handleSearchSubmit}>
+      <form onSubmit={handleSearchSubmit}>
         <div className="input-group" style={{ width: '80%' }}>
           <input
             type="text"
@@ -36,12 +36,11 @@ const SearchForm = ({
             value={searchCategory}
             onChange={onSearchCategoryChange}
           >
-            <option value="Any">Any</option>
-            <option value="Name">Name</option>
-            <option value="Main Agency">Main Agency</option>
-            <option value="Executing Agency">Executing Agency</option>
-            <option value="Execution Type">Execution Type</option>
-            <option value="Locations">Locations</option>
+            <option defaultChecked value="name">Name</option>
+            <option value="main_agency">Main Agency</option>
+            <option value="executing_agency">Executing Agency</option>
+            <option value="execution_type">Execution Type</option>
+            <option value="location">Locations</option>
           </select>
         </div>
         {/* <button type="submit">Search</button> */}
