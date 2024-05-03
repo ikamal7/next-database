@@ -1076,3 +1076,24 @@ tbody td a span {
     width: 100%;
   }
 }
+
+.table-loader {
+  padding: 100px 0;
+  text-align: center;
+}
+
+.table-loader svg {
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}

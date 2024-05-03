@@ -15,6 +15,7 @@ const Table = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [searchText, setSearchText] = useState("");
   const [searchCategory, setSearchCategory] = useState("Name");
+  const [isLoading, setIsLoading] = useState(false);
 
   const apiKey = process.env.NEXT_PUBLIC_AIRTABLE_API_KEY;
   const baseId = process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID;
@@ -31,6 +32,9 @@ const Table = () => {
     const url = `https://api.airtable.com/v0/${baseId}/${tableName}`;
     const offsetParam = offset ? `&offset=${offset}` : '';
     const formula = filterByFormula ? `&filterByFormula=${filterByFormula}` : '';
+
+    setIsLoading(true);
+
     axios.get(`${url}?pageSize=${pageSize}&view=Grid+view${offsetParam}${formula}`, {
       headers: {
         Authorization: `Bearer ${apiKey}`
@@ -47,6 +51,8 @@ const Table = () => {
         setOffsetList(prev => ([res?.data?.offset, ...prev]))
       }
       setProfiles(fieldsArray);
+    }).finally(() => {
+      setIsLoading(false);
     })
   }
 
@@ -203,7 +209,7 @@ const Table = () => {
               </tr>
             </thead>
             <tbody>
-              {profiles?.map((profile, index) => (
+              {!isLoading && profiles?.map((profile, index) => (
                 <tr key={index}>
                   <td>
                     <svg
@@ -238,6 +244,15 @@ const Table = () => {
               ))}
             </tbody>
           </table>
+
+          {isLoading && (
+            <div className="table-loader">
+              <svg fill="currentColor" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z" />
+                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466" />
+              </svg>
+            </div>
+          )}
         </div>
         <div className="flex pd-container">
           <div className="pagination">
